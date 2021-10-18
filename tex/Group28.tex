@@ -1,0 +1,238 @@
+%% Based on the style files for ACL 2018, NAACL 2018/19, which were
+%% Based on the style files for ACL-2015, with some improvements
+%%  taken from the NAACL-2016 style
+%% Based on the style files for ACL-2014, which were, in turn,
+%% based on ACL-2013, ACL-2012, ACL-2011, ACL-2010, ACL-IJCNLP-2009,
+%% EACL-2009, IJCNLP-2008...
+%% Based on the style files for EACL 2006 by 
+%%e.agirre@ehu.es or Sergi.Balari@uab.es
+%% and that of ACL 08 by Joakim Nivre and Noah Smith
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[hyperref]{acl2019}
+\usepackage{times}
+\usepackage{latexsym}
+
+\usepackage{url}
+
+%\aclfinalcopy % Uncomment this line for the final submission
+\def\aclpaperid{Group 28: Xavier Morin Duchesne, Abdusami Abdurahman, Julien Mounthanyvong\\} %  Enter the acl Paper ID here
+
+%\setlength\titlebox{5cm}
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+
+\newcommand\BibTeX{B\textsc{ib}\TeX}
+
+\title{Reasonable Multilingual Sentiment Analysis\\Using a Simple Machine Translation Approach}
+
+\usepackage{ulem}
+\renewcommand{\ULdepth}{1.8pt}
+
+\usepackage{xcolor}
+\newcommand{\todo}[1]{\textbf{\textcolor{red}{#1}}}
+\newcommand{\tocheck}[1]{\textbf{\textcolor{blue}{#1}}}
+\usepackage{comment}
+\usepackage{booktabs}
+\usepackage{multirow}
+\newcommand{\amazon}[1]{\href{http://www.amazon.#1}{amazon.#1}}
+\newcommand{\nan}{\mathrm{NaN}}
+
+% \author{Author \\
+%   Affiliation / Address line 1 \\
+%   Affiliation / Address line 2 \\
+%   Affiliation / Address line 3 \\
+%   \texttt{email@domain} \\\And
+%   Second Author \\
+%   Affiliation / Address line 1 \\
+%   Affiliation / Address line 2 \\
+%   Affiliation / Address line 3 \\
+%   \texttt{email@domain} \\}
+
+\date{}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+This project began as an ambitious analysis of cross-language sentiment analysis. As reality hit, however, we discovered important lessons about machine learning, especially the importance of not re-inventing (or re-training) the wheel and, instead, trying to find general solutions to specific problems. This led us to investigate Machine Translation as a more reasonable approach to multilingual sentiment analysis. In the end, we found that, Machine Translation cannot currently be used as a substitute for language-specific training, but that it can, in some cases, be a substitute for language-specific preprocessing.
+\end{abstract}
+
+\section{Introduction}
+\begin{comment}
+    \begin{enumerate}
+        \item Project began with ambition.
+        \item Reality caught up.
+        \item Collecting data in English is far easier. Introduce new dataset: number of reviews in English, French, Spanish, and Chinese. Mention that we originally wanted to work with Arabic, but that (1) data is harder to find [found very few reviews on Amazon.AE in arabic] and (2) Arabic has many non-standard forms.
+        \item Most work in Sentiment Analysis has been done in English (Korayem, Aljadda, Crandall, 2016; Sentiment-subjectivity analysis survey for languages other than English.pdf). This is corroborated by our own literature search in which we found handfuls few papers discussing sentiment analysis in French, Spanish, or Chinese.
+        \item Each language has specific requirements. For French, removing accents may be desirable, but, in Spanish, it may cause confusion (find evidence? justify it? como, como, com\'o, and c\'omo; cuando and c\'uando)
+        \item For Chinese, cite Chen et al. (2018) [Sentiment Analysis Chinese].
+        \item Contrary to other areas of ML (e.g., vision/VGG), no code available for Sentiment Analysis and implementing state of the art attention model outside the scope of this project (and, possibly, of many reasonably budgeted projects).
+        \item Why not make use of the work that others have already put forward (e.g., machine translation).
+        \item Begs the question: will Machine Translation, one day, be able to solve all of our problems? Maybe. (Reword this question.)
+    \end{enumerate}
+    
+    \begin{enumerate}
+        \item \textbf{Previous work: Balahur \& Turchi (2012). [Multilingual Sentiment Analysis using Machine Translation.pdf]}\\Similar approach, but used French, German, and Spanish. We used French, Spanish, and Chinese.
+    \end{enumerate}
+    
+    \begin{enumerate}
+        \item Results: hard to say if good performance with full ratings, since data is very unbalanced. However, binarized data better.
+    \end{enumerate}
+\end{comment}
+
+\begin{comment}
+Our project is concerned with low budget sentiment analysis of data coming from four languages: English, French, Spanish, and Mandarin Chinese. Our interest in the low budget aspect of sentiment analysis was borne out of the difficulties encountered through out the realization of this project. As outlined below, we managed to circumvent many of these issues and this report outlines our experience and what we learned from working through these issues.
+\end{comment}
+
+Machine Translation (MT) quality has improved significantly in recent year \cite{hirschberg2015advances, lample2018phrase}. This project proposes to evaluate an approach which makes use of these improvements for multilingual sentiment analysis. More specifically, we propose to use MT to translate non-English datasets to English and then apply a sentiment analysis algorithm on the resulting translated dataset. We became interested in this approach as a result of difficulties we encountered working on this project. In what follows, we discuss these difficulties, what they taught us, how they led us to focus on this approach.
+
+This project began with ambition: we were going to collect hundreds of thousands of online product reviews from various branches of the multinational Amazon, we were going to use those reviews with a state-of-the-art sentiment analysis neural network, and we were going to evaluate the different ways in which these multilingual data could be used to predict sentiment across languages. Reality, however, quickly caught up.
+
+We met our first obstacle during data collection. Though we were able to collect over $662,000$ reviews, $40\%$ were in English from \amazon{com}, $27\%$ in French from \amazon{fr}, $27\%$ in Spanish from \amazon{es}, and the remaining $6\%$ in Chinese from \amazon{cn}. Importantly, it was far easier to obtain data in English than in any other language, and significantly harder in Chinese than in the other languages.\footnote{This is despite limitations on the number of reviews per product and on the number of product pages crawled per category; limitations put in place to constrain this very imbalance. Without these safeguards, the imbalance would have been far greater.} In fact, we had originally wanted to work with Modern Standard Arabic and \amazon{ae}, but that branch of Amazon is newer and had very few reviews in Arabic; far too few for our purposes. 
+
+The second problem arose when we began working with non-English data, deciding on the preprocessing steps to apply to each language. On the one hand, it was unclear, for example, whether accents in French and Spanish should be removed or whether lemmatization was appropriate for those languages. On the other, the considerations for Chinese were more fundamental: contrarily to English, French, and Spanish, Chinese does not feature natural word boundaries (i.e., spaces between words); yet proper segmentation is necessary and the accuracy of this segmentation can impact the results of subsequent analyses \cite{chen2018fine}. How does one, then, do proper segmentation of Chinese text?
+
+We naturally turned to the scientific literature on sentiment analysis to look for answers to these questions, and it was there that we ran into our third and final problem: the lack of literature. Not only did we only find very few papers concerned with this topic and those languages, many of the papers we found came to a similar conclusion: the vast majority of work done in sentiment analysis has focused on English with very little work in other languages \cite{aydougan2016comprehensive, balahur2012multilingual, ghorbel2011sentiment, korayem2016sentiment, pang2008opinion} and, \citet{chen2018fine} argue, the results for English may not readily apply to other languages.
+
+These three issues---difficulties collecting non-English data, language-specific text processing requirements, and the dearth of literature on non-English sentiment analysis---led us to question the very nature of our project: Does it even make sense to use a language-specific approach where each language has its own dataset, preprocessing steps, and trained machine learning algorithms? Already, research in Natural Language Processing (NLP) has tended to separate related but different tasks (e.g., sentiment analysis and opinion mining), each with its own preferred algorithm, trained neural networks, etc., the consequence of which has sometimes been that the solutions provided (e.g., the trained neural networks) do not generalize to related tasks. Worse yet, the solutions provided have often been for specific to English-language tasks and datasets, leaving future research to come up with new ``solutions'' (i.e., preferred algorithms, trained neural networks, etc.) for other languages. This approach---producing similar, but adapted resources and research for each new language---seems naive: there are too many languages and dialects for us to have a separate solution for each combination of language or dialect and task. An ideal approach would instead abstract away language to create language-less, concept-based datasets and algorithms. To our knowledge, however, such general language abstraction does not yet exist. Accordingly, a reasonable alternative is to use MT to translate from non-English languages to English and to apply the results of NLP research in English to translated-to-English datasets.
+
+We thus ultimately decided to take on these new questions: Can MT be used in lieu of language-specific preprocessing? That is to say, can a model trained on a translated-to-English dataset identify sentiment in translated-to-English text? Moreover, can MT be used as a complete substitute such that a model trained on an English dataset can identify sentiment in translated-to-English text? Note that we are not proposing to train a MT model, but instead to use an already, freely available MT tool: Google Translate \cite{GoogleTranslate}. The purpose, as argued previously, is to avoid reinventing the wheel (or unnecessarily retraining known algorithms) and, instead, to use already available mechanisms; a general solution to a specific problem.
+
+\section{Related works}
+Though most of the work in sentiment analysis has been done on datasets in English \cite{aydougan2016comprehensive, balahur2012multilingual, ghorbel2011sentiment, korayem2016sentiment, pang2008opinion}, there are instances of research done on other languages. \citet{ghorbel2011sentiment}, for example, report experiments on sentiment analysis of French movie reviews; \citet{martin2013sentiment}, on sentiment analysis of Spanish movie reviews; and \citet{chen2018fine}, on sentiment analysis of product reviews in Chinese from \amazon{cn} (see \citet{aydougan2016comprehensive} for a detailed survey of machine learning in sentiment analysis prior to $2016$ and \citet{korayem2016sentiment} for a survey on sentiment analysis in non-English languages prior to $2016$). Our research complements this work: whereas their goal was to identify models appropriate for a specific language (English or otherwise), our goal here is to evaluate whether MT can help generalize their findings to other languages.
+
+Our approach, using MT to translate a dataset to a target language before applying sentiment analysis, is not new. It was first applied by \citet{bautin2008international} and has since been applied by many others (including \citealp{balahur2012multilingual, brooke2009cross, martin2013sentiment}). Our work supplements the cited work by considering online product reviews from various branches of the multinational Amazon.
+
+Finally, there has been previous work has investigating sentiment analysis on Amazon reviews (namely, \citealp{chen2018fine, glorot2011domain, rain2013sentiment}), however, these studies focused on reviews in a single language (Chinese or English) whereas our work investigates four languages: English, French, Spanish, and Chinese.
+
+\section{Dataset and Experiments}
+\subsection{Data collection}
+We collected our data using a Google Chrome extension written by one of the authors, Xavier. This extension consists in three parts. The first activates while browsing an Amazon website, when landing on a page listing products (e.g., \url{https://www.amazon.com/s?rh=n\%3A16225007011\%2Cn\%3A1292110011}). This first part identifies all of the products with reviews on the page, chooses one at random which has not yet been visited, marks that product as visited, and instructs the browser to move to that product's page. The second part activates when the browser reaches a product page (e.g., \url{https://www.amazon.com/dp/B07MW159XC/}). It confirms that the product does have reviews and then instructs the browser to move on to the first page of reviews (e.g., \url{https://www.amazon.com/product-reviews/B07MW159XC/}). Once the browser has loaded a review page, the third and final part of the extension downloads that page of reviews and instructs the browser to move on to the next page of reviews. This process ends when there are no more reviews or when 10 pages of reviews have been downloaded; the browser is then instructed to return to the product listing page. The first part of the extension then activates anew, locates a new product to visit and instructs the browser to move to that product's page. When there are no products left unvisited, the browser is instructed to move on to the next product listing page. The extension terminates fully when there are no product listing pages left or when the tenth page is reached. Finally, the reviews were extracted from the review pages' HTML and written to a CSV file using a custom script written in Python \cite{python3}.
+
+We chose to use a Chrome extension to collect our data rather than using a scraper for two reasons: CAPTCHAs and trustworthiness. First, we originally did try to use scrapers, but struggled to collect more than a handful of reviews: the scraper would quickly encounter a CAPTCHA which it had no way to solve. We were using a VPN and, when encountering a problem of any kind, the script would try again with a different VPN server and IP address, but we were nonetheless unable to collect much data. Compared to the scraper, when a CAPTCHA appears, the Chrome extension simply pauses and waits until a human solves the CAPTCHA before resuming scraping. Second, we do not know which methods companies like Amazon use to identify scrapers, but we hypothesized that there must be mechanisms meant to differentiate browsers from scrapers. In other words, we wanted to use the Chrome's inherent \textit{trustworthiness} for scraping. This ultimately paid off: we ran into very few issues, for example having to solve only between 20 and 30 CAPTCHAs in the process of collecting over $662,000$ reviews. 
+
+\subsection{Multilingual dataset}
+    \begin{table}[t!]
+        \begin{tabular}{crrrr}
+            \toprule
+                \textbf{rating} &
+                \multicolumn{1}{c}{\href{http://www.amazon.com}{.com}} &
+                \multicolumn{1}{c}{\href{http://www.amazon.fr}{.fr}} &
+                \multicolumn{1}{c}{\href{http://www.amazon.es}{.es}} &
+                \multicolumn{1}{c}{\href{http://www.amazon.cn}{.cn}} \\
+            \midrule
+                \textbf{5} & 172,700 & 113,508 & 116,732 & 27,519\\
+                \textbf{4} & 34,247  & 31,176  & 29,424  & 6,030\\
+                \textbf{3} & 18,823  & 12,872  & 11,283  & 3,032\\
+                \textbf{2} & 13,085  & 7,502   & 6,251   & 1,262\\
+                \textbf{1} & 27,114  & 12,843  & 13,876  & 3,202\\
+            \midrule
+                \textbf{total} & 265,969 & 177,901 & 177,566 & 41,045\\
+            \bottomrule
+        \end{tabular}
+        \caption{Number of reviews per branch and rating.}
+        \label{NumberReviews}
+    \end{table}
+    
+    Table~\ref{NumberReviews} presents the breakdown in terms of the number of reviews collected from each branch and for each rating. These reviews were collected from 28 product categories, the same or similar product categories across branches (e.g., infant clothing on \amazon{cn}, clothing for babies on \amazon{es}, 0-24 month clothing on \amazon{fr}, and both baby boy and baby girl clothing on \amazon{com}).
+    
+    From this larger dataset, we created four smaller sets, each containing $22,000$ reviews. These smaller sets made training neural networks, translation, and running experiments more amenable than using the full datasets.
+    
+    It should be noted that visual inspection of a sample of the reviews from each branch confirms that the vast majority of reviews are in the expected language; that is to say that almost all reviews from \amazon{com} were in English; \amazon{fr}, in French; \amazon{es}, in Spanish; and \amazon{cn}, in Chinese. We did not remove reviews which were not in the expected language from the datasets, but instead simply consider them a negligible source of noise.
+
+\subsection{Translated dataset}
+    Three translated-to-English sets---French-to-English, Spanish-to-English, and Chinese-to-English---were created from their respective smaller sets. For each of these, all $22,000$ reviews were translated to English using the \texttt{GOOGLETRANSLATE()} function \cite{GoogleTranslate} provided through Google Sheets.
+    
+\subsection{Data preparation}
+    For the multilingual dataset, reviews in English, French, and Spanish were tokenized by splitting on white spaces, text was lowercased, and all tokens containing non-alphanumeric characters were removed (including punctuation, as well as unicode characters such as emojis). Chinese text was tokenized using the PyNLPIR \cite{pynlpir}, a Python wrapper library for NLPIR \cite{zhou2003nlpir}. Again, tokens with non-alphanumeric characters were removed.\footnote{The Python function \texttt{isalnum()} treats Chinese characters as ``alpha''. Visual inspection confirmed that this removed punctuation and emojis, but did not affect the text.}
+    
+    The translated-to-English reviews were treated as English; tokenized, lowercased, and stripped of non-alphanumeric tokens.
+
+\subsection{Classifier}
+    Our classifier was implemented in Python \cite{python3} using the NumPy \cite{numpy} and PyTorch Python libraries \cite{pytorch}. It ran on Google's Colaboratory \cite{Colab}.
+
+    We chose to use the \citet{kim2014convolutional} Convolutional Neural Network for sentiment analysis. This type of neural network architecture is very popular in the machine learning literature (with close to 5900 citations on Google Scholar at the time of this writing) and has previously been applied to sentiment analysis (e.g., \citealp{severyn2015twitter, cai2015convolutional}).
+    
+    This classifier is composed of a word embedding layer followed by several parallel convolutional units, a dropout layer and, finally, a linear classifier. Each convolutional unit is itself composed of a convolutional layer, a batch normalization layer, and a rectified linear unit. The output of these parallel units is concatenated before being passed on to the final dropout and linear classifier layers.
+    
+    Our model's embedding layer was trained separately using our full datasets for each language\footnote{The full English dataset was used to train the embedding layers for the translated-to-English datasets.\label{embedding_note}} and using the Python library GenSim's \cite{gensim} Word2Vec Continuous Bag Of Words (CBOW) implementation. Our model had three convolutional units, with filters of size three, four, and five respectively.
+
+\subsection{Experiments}
+    We were interested in comparing the performances of models trained and tested in their original language to that of models trained and tested on translated-to-English datasets and to that of a model trained on an English language dataset and tested on translated-to-English datasets.
+   
+    In order to do so, each dataset was split into three subsets: a training set of $20,000$ reviews, a validation set of $1,000$ reviews, and a test set of $1,000$ reviews. Using these subsets, seven networks were trained and tested, one for each language or translated dataset: English, French, Spanish, Chinese, French-to-English, Spanish-to-English, and Chinese-to-English. The performance of the English-trained network was also evaluated on the translated-to-English test sets.
+    
+   Finally, in order to circumvent issues arising from the imbalance in ratings in our dataset (see Table~\ref{NumberReviews} for more details), we created new datasets where the ratings were binarized such that a rating of ``5'' was considered positive and any other rating, negative, and trained seven new models. We report the results of both experiments on both binary and non-binary datasets.  
+   
+   
+\section{Results and Discussion}
+    
+    \begin{table*}[ht!]
+        \centering
+        \begin{tabular}{cccccccc}
+            \toprule
+                \multirow[c]{2}{*}{\textbf{rating}} &
+                \multirow[c]{2}{*}{\textbf{English}} &
+                \multicolumn{2}{c}{\textbf{French}} &
+                \multicolumn{2}{c}{\textbf{Spanish}} &
+                \multicolumn{2}{c}{\textbf{Chinese}} \\
+                 & &
+                \multicolumn{1}{c}{\textit{original}} & \multicolumn{1}{c}{\textit{translated}} &
+                \multicolumn{1}{c}{\textit{original}} & \multicolumn{1}{c}{\textit{translated}} &
+                \multicolumn{1}{c}{\textit{original}} & \multicolumn{1}{c}{\textit{translated}} \\
+            \midrule
+                \textbf{5} & $69.83$ & $67.53$ & $85.62$ & $66.67$ & $89.70$ & $56.41$ & $52.17$\\
+                \textbf{4} & $12.90$ & $26.47$ & $76.32$ & $29.17$ & $77.22$  & $\nan$ & $\nan$\\
+                \textbf{3} & $34.62$ & $29.31$ & $65.29$ & $27.37$ & $53.01$ & $30.00$ & $12.24$\\
+                \textbf{2} & $34.83$ & $18.92$ & $56.51$ & $37.37$ & $49.95$ & $19.80$ & $17.02$\\
+                \textbf{1} & $88.51$ & $85.56$ & $90.36$ & $87.53$ & $90.23$ & $87.11$ & $84.97$\\
+            \midrule
+                \textbf{positive} & $79.26$ & $73.08$ & $86.03$ & $71.04$ & $80.87$ & $72.30$ & $65.07$\\
+                \textbf{negative} & $89.99$ & $86.59$ & $92.54$ & $87.77$ & $91.88$ & $88.35$ & $85.59$\\
+            \bottomrule
+        \end{tabular}
+        \caption{F1 scores for the first experiment. Neural networks trained and tested on the original, multilingual datasets are compared to neural networks trained and tested on the translated-to-English datasets.}
+        \label{Experiment1}
+    \end{table*}
+    
+    \begin{table}[ht!]
+        \centering
+        \begin{tabular}{cccc}
+            \toprule
+                \multirow[c]{1}{*}{\textbf{rating}} &
+                \multicolumn{1}{c}{\textbf{French}} &
+                \multicolumn{1}{c}{\textbf{Spanish}} &
+                \multicolumn{1}{c}{\textbf{Chinese}} \\
+            \midrule
+                \textbf{5} & $57.89$ & $61.63$    & $40.68$\\
+                \textbf{4} & $14.81$ & $\:\:8.89$ &  $\nan$\\
+                \textbf{3} & $11.43$ & $23.08$    & $18.54$\\
+                \textbf{2} & $25.73$ & $22.94$    & $24.43$\\
+                \textbf{1} & $85.11$ & $85.56$    & $82.34$\\
+            \midrule
+                \textbf{positive} & $68.31$ & $66.44$ & $63.61$\\
+                \textbf{negative} & $84.74$ & $85.96$ & $77.51$\\
+            \bottomrule
+        \end{tabular}
+        \caption{F1 scores for the second experiment. The neural network trained on the English dataset was tested on the translated-to-English test sets.}
+        \label{Experiment2}
+    \end{table}
+
+    The results of the first experiment are presented in Table~\ref{Experiment1}. Strikingly, the French and Spanish translated-to-English trained models performed better than the models trained on the original language data, whereas we observe the opposite effect in the case of Chinese. This effect for French and Spanish was unexpected: we expected that the models might perform similarly, but, instead, for those languages, the translated-to-English-trained models performed much better than their counterparts. There are a few possible explanations. First, the translated-to-English models used word embedding trained on the full English dataset (see footnote \ref{embedding_note}) which was 1.5 times bigger than those for either French or Spanish. Having more examples may have allowed the models to develop a better sentiment representation. Another explanation is that translation may have constrained vocabulary in a way which helped the sentiment analysis models. For example, let us imagine two 5-star French reviews: ``c'est g\'enial'' (it's great) and ``c'est merveilleux'' (it's wonderful). Let us assume that the MT algorithm translated both to ``it's great.'' The French-trained model would split the weight update between ``g\'enial'' and ``merveilleux,'' whereas the translated-to-English model would have concentrated the update all on ``great.'' This is corroborated by the fact that the translated-to-English models in fact performed better than the English model did. As for the Chinese model, the lower performances may be a statement on the quality of MT from English to Chinese; unsurprisingly, translation between between Roman languages---French and Spanish---and Germanic languages---English---, that is, between Indo-European languages, is easier than between Indo-European and Sino-Tibetan languages.
+    
+    The results of the second experiment are presented in Table~\ref{Experiment2}. We note that, save for a few exceptions, the scores are lower than the corresponding scores reported for first experiment (see Table~\ref{Experiment1}). That is to say that the scores for the English-trained model on the translated-to-English test sets are worse than those for the models trained on their own languages or trained on translated-to-English data.
+    
+    The results of the first experiment suggest that MT is a reasonable and, perhaps even, desirable alternative to language-specific data preprocessing for sentiment analysis. For example, in this project, in preprocessing data from the original languages, we chose to keep accents and did not apply any kind of stemming or lemmatization. We made this choice due to the lack of sufficient literature to guide this decision. What our results suggest is that, in the future, one could simply avoid this question by translating the data to English, preprocessing the data in a way demonstrated to work for English and the task at hand, and training the model using this translated-to-English preprocessed data. This approach, at least for the time being, however, appears to work best with languages in the same family as the target language (English, in this case) and, otherwise, for language pairs for which MT is expected to produce quality translations.
+    
+    The second experiment suggests, however, that MT does yet permit us to generalize sentiment analysis findings in English to other languages. That is to say that, at least for the time being, we will need to continue investigating language-specific solutions.
+    
+\section{Conclusion}
+    Machine Translation has come a long way in the last decade. As it keeps progressing, we believe that machine translation may enable researchers to generalize the results of sentiment analysis work in English to other languages. More generally, we hope that this approach will make it possible to apply the results of Natural Language Processing in English to other languages, simply by translating to English.
+    
+
+\bibliography{acl2019}
+\bibliographystyle{acl_natbib}
+
+\end{document}

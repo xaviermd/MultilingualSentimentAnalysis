@@ -1,0 +1,74 @@
+{
+  "manifest_version": 2,
+  "name": "Amazon review scraping",
+  "description": "Parses listings and product pages, and allows saving of review pages",
+  "version": "0.0",
+  "icons": {
+       "16": "icon16.png",
+       "48": "icon48.png",
+      "128": "icon128.png"
+  },
+  "background": {
+    "scripts": ["download.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+  {
+    "js": ["featured_listing.js"],
+    "matches": [
+      "*://www.amazon.com/s?*rh=*",
+      "*://www.amazon.com/s/*rh=*",
+      "*://www.amazon.com/s/*ref=*",
+      "*://www.amazon.com/b/*ref=*",
+      "*://www.amazon.com/b/*node=*",
+      "*://www.amazon.fr/s?*rh=*",
+      "*://www.amazon.fr/s/*rh=*",
+      "*://www.amazon.fr/s/*ref=*",
+      "*://www.amazon.fr/b/*ref=*",
+      "*://www.amazon.fr/b/*node=*",
+      "*://www.amazon.es/s?*rh=*",
+      "*://www.amazon.es/s/*rh=*",
+      "*://www.amazon.es/s/*ref=*",
+      "*://www.amazon.es/b/*ref=*",
+      "*://www.amazon.es/b/*node=*",
+      "*://www.amazon.cn/s?*rh=*",
+      "*://www.amazon.cn/s/*rh=*",
+      "*://www.amazon.cn/s/*ref=*",
+      "*://www.amazon.cn/b/*ref=*",
+      "*://www.amazon.cn/b/*node=*"
+    ],
+    "run_at": "document_end"
+  },
+  {
+    "js": ["product.js"],
+    "matches": [
+      "*://www.amazon.com/*/dp/*",
+      "*://www.amazon.fr/*/dp/*",
+      "*://www.amazon.es/*/dp/*",
+      "*://www.amazon.cn/*/dp/*",
+      "*://www.amazon.cn/dp/*"
+    ],
+    "run_at": "document_idle"
+  },
+  {
+    "js": ["reviews.js"],
+    "matches": [
+      "*://www.amazon.com/*/product-reviews/*",
+      "*://www.amazon.fr/*/product-reviews/*",
+      "*://www.amazon.es/*/product-reviews/*",
+      "*://www.amazon.cn/*/product-reviews/*",
+      "*://www.amazon.cn/product-reviews/*"
+    ],
+    "run_at": "document_end"
+  }
+  ],
+  "permissions": [
+    "tabs",
+    "downloads",
+    "downloads.shelf",
+    "storage"
+  ],
+  "browser_action": {
+    "name": "Save page"
+  }
+}
